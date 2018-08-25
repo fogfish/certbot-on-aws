@@ -11,27 +11,24 @@ phases:
       - |
         if [ `ls -1A /etc/letsencrypt | wc -l` -eq 0 ] ;
         then
-          echo "==> register new account"
-          certbot register --agree-tos --register-unsafely-without-email
-        else
-          echo "==> use existing account"
+          certbot register --agree-tos -m ${EMAIL}
         fi
   build:
     commands:
       - echo "==> build"
       - |
-        if [ ! -d "/etc/letsencrypt/archive/${FQDN}" ] ;
+        if [ ! -d "/etc/letsencrypt/archive/${DOMAIN}" ] ;
         then
-          echo "==> request certificates for ${FQDN}"
-          certbot certonly --staging --dns-route53 -d ${FQDN} --register-unsafely-without-email --agree-tos
+          echo "==> request certificates for ${DOMAIN}"
+          certbot certonly --staging --dns-route53 -d ${DOMAIN} -m ${EMAIL} --agree-tos
         else
-          echo "==> re-new of ${FQDN}"
+          echo "==> re-new of ${DOMAIN}"
           certbot renew --staging
         fi
   post_build:
     commands:
       - echo "==> post-build"
       - tar -czvf /tmp/letsencrypt.tgz /etc/letsencrypt
-      - aws s3 cp /etc/letsencrypt/live/${FQDN}/cert.pem ${S3}/${FQDN}/cert.pem
-      - aws s3 cp /etc/letsencrypt/live/${FQDN}/privkey.pem ${S3}/${FQDN}/privkey.pem
+      - aws s3 cp /etc/letsencrypt/live/${DOMAIN}/cert.pem ${S3}/${DOMAIN}/cert.pem
+      - aws s3 cp /etc/letsencrypt/live/${DOMAIN}/privkey.pem ${S3}/${DOMAIN}/privkey.pem
       - aws s3 cp /tmp/letsencrypt.tgz ${S3}/letsencrypt.tgz
