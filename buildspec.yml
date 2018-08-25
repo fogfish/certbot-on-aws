@@ -20,10 +20,10 @@ phases:
         if [ ! -d "/etc/letsencrypt/archive/${DOMAIN}" ] ;
         then
           echo "==> request certificates for ${DOMAIN}"
-          certbot certonly --staging --dns-route53 -d ${DOMAIN} -m ${EMAIL} --agree-tos
+          certbot certonly --dns-route53 -d ${DOMAIN} -m ${EMAIL} --agree-tos --non-interactive
         else
           echo "==> re-new of ${DOMAIN}"
-          certbot renew --staging
+          certbot renew
         fi
   post_build:
     commands:
