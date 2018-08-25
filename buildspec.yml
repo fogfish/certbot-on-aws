@@ -20,8 +20,9 @@ phases:
     commands:
       - echo "==> build"
       - ls -alh /etc/letsencrypt
+      - ls -alh /etc/letsencrypt/achive
       - |
-        if [ -d /etc/letsencrypt/archive/${FQDN} ] ;
+        if [ -d "/etc/letsencrypt/archive/${FQDN}" ] ;
         then
           echo "==> unknwon ${FQDN}"
         fi
