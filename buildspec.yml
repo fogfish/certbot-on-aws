@@ -32,4 +32,6 @@ phases:
     commands:
       - echo "==> post-build"
       - tar -czvf /tmp/letsencrypt.tgz /etc/letsencrypt
+      - aws s3 cp /etc/letsencrypt/live/${FQDN}/cert.pem ${S3}/${FQDN}/cert.pem
+      - aws s3 cp /etc/letsencrypt/live/${FQDN}/privkey.pem ${S3}/${FQDN}/privkey.pem
       - aws s3 cp /tmp/letsencrypt.tgz ${S3}/letsencrypt.tgz
