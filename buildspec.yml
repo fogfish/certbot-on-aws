@@ -11,17 +11,19 @@ phases:
       - |
         if [ `ls -1A /etc/letsencrypt | wc -l` -eq 0 ] ;
         then
+          echo "==> register new account"
           certbot register --agree-tos --register-unsafely-without-email
+        else
+          echo "==> use existing account"
         fi
   build:
     commands:
       - echo "==> build"
+      - ls -alh /etc/letsencrypt
       - |
         if [ -d /etc/letsencrypt/archive/${FQDN} ] ;
         then
-          certbot certonly --staging --dns-route53 -d ${FQDN} --register-unsafely-without-email --agree-tos
-        else
-          certbot renew --staging
+          echo "==> unknwon ${FQDN}"
         fi
   post_build:
     commands:
