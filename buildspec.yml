@@ -16,7 +16,13 @@ phases:
   build:
     commands:
       - echo "==> build"
-      - certbot certonly --staging --dns-route53 -d ${FQDN} --register-unsafely-without-email --agree-tos
+      - |
+        if [ -d /etc/letsencrypt/archive/${FQDN} ] ;
+        then
+          certbot certonly --staging --dns-route53 -d ${FQDN} --register-unsafely-without-email --agree-tos
+        else
+          certbot renew --staging
+        fi
   post_build:
     commands:
       - echo "==> post-build"
