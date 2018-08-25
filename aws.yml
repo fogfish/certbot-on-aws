@@ -1,0 +1,96 @@
+##
+## @doc 
+##   project builder
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Automation of Let's Encrypt for your domain
+
+Parameters:
+
+  S3:
+    Description: S3 bucket to store cerbot state
+    Type: String
+
+  Email:
+    Description: Email address for important account notifications
+    Type: String
+
+  Domain:
+    Description: Domain
+    Type: String
+
+Resources:
+
+  CertBotRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${AWS::StackName}-role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codebuild.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+      Policies:
+        - PolicyName: !Sub ${AWS::StackName}-certbot-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource:
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/*
+              - Effect: Allow
+                Action:
+                  - "route53:ListHostedZones"
+                  - "route53:GetChange"
+                  - "route53:ChangeResourceRecordSets"
+                  - "codebuild:*"
+                Resource: 
+                  - "*"
+
+  CertBotCodeBuild:
+    DependsOn: CertBotRole
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub ${AWS::StackName}
+      Description: !Sub ${AWS::StackName}
+      ServiceRole: !Sub ${AWS::StackName}-role
+      Artifacts:
+        Type: no_artifacts
+      Environment:
+        Type: linuxContainer
+        ComputeType: BUILD_GENERAL1_SMALL
+        PrivilegedMode: true
+        Image: fogfish/certbot
+        EnvironmentVariables:
+          - Name: S3
+            Value: !Ref S3 
+          - Name: EMAIL
+            Value: !Ref Email
+          - Name: DOMAIN
+            Value: !Ref Domain
+      Source:
+        Location: https://github.com/fogfish/certbot-on-aws
+        Type: GITHUB
+      TimeoutInMinutes: 30
+
+  CertBotCron:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: !Sub CloudWatch event scheduler for ${AWS::StackName}
+      Name: !Sub ${AWS::StackName}-scheduler
+      ScheduleExpression: cron(0 8 1 * ? *)
+      State: ENABLED
+      Targets:
+      - Id: !Sub ${AWS::StackName}-schedule
+        Arn: !Sub arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:project/${AWS::StackName}
+        RoleArn: !Sub arn:aws:iam::${AWS::AccountId}:role/${AWS::StackName}-role
