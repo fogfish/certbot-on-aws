@@ -7,11 +7,11 @@ phases:
   pre_build:
     commands:
       - echo "==> pre-build"
-      - bash config.sh
+      - sh config.sh
   build:
     commands:
       - echo "==> build"
   post_build:
     commands:
       - echo "==> post-build"
-      - bash publish.sh
+      - sh publish.sh
