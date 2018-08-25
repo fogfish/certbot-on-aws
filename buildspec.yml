@@ -7,11 +7,17 @@ phases:
   pre_build:
     commands:
       - echo "==> pre-build"
-      - sh config.sh
+      - aws s3 cp ${S3} /etc/letsencrypt --recursive
+      - |
+        if [ `ls -1A /etc/letsencrypt | wc -l` -eq 0 ] ;
+        then
+          certbot register --agree-tos --register-unsafely-without-email
+        fi
   build:
     commands:
       - echo "==> build"
+      - certbot certonly --staging --dns-route53 -d ${FQDN}
   post_build:
     commands:
       - echo "==> post-build"
-      - sh publish.sh
+      - aws s3 cp /etc/letsencrypt ${S3} --recursive
