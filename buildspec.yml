@@ -16,7 +16,7 @@ phases:
   build:
     commands:
       - echo "==> build"
-      - certbot certonly --staging --dns-route53 -d ${FQDN} --register-unsafely-without-email
+      - certbot certonly --staging --dns-route53 -d ${FQDN} --register-unsafely-without-email --agree-tos
   post_build:
     commands:
       - echo "==> post-build"
