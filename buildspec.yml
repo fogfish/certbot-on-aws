@@ -19,12 +19,12 @@ phases:
   build:
     commands:
       - echo "==> build"
-      - ls -alh /etc/letsencrypt
-      - ls -alh /etc/letsencrypt/archive
       - |
-        if [ -d "/etc/letsencrypt/archive/${FQDN}" ] ;
+        if [ ! -d "/etc/letsencrypt/archive/${FQDN}" ] ;
         then
-          echo "==> unknwon ${FQDN}"
+          echo "==> request certificates for ${FQDN}"
+        else
+          echo "==> re-new of ${FQDN}"
         fi
   post_build:
     commands:
