@@ -7,7 +7,7 @@ phases:
   pre_build:
     commands:
       - echo "==> pre-build"
-      - aws s3 cp ${S3} /etc/letsencrypt --recursive
+      - aws s3 cp ${S3}/letsencrypt.tgz /tmp/letsencrypt.tgz && tar -C / -xvf /tmp/letsencrypt.tgz || echo "empty project"
       - |
         if [ `ls -1A /etc/letsencrypt | wc -l` -eq 0 ] ;
         then
@@ -31,4 +31,5 @@ phases:
   post_build:
     commands:
       - echo "==> post-build"
-      - aws s3 cp /etc/letsencrypt ${S3} --recursive
+      - tar -czvf /tmp/letsencrypt.tgz /etc/letsencrypt
+      - aws s3 cp /tmp/letsencrypt.tgz ${S3}/letsencrypt.tgz
